@@ -1,4 +1,6 @@
-# Coginov Exchange Library
+# Coginov Exchange Library / NuGet Package
+https://medium.com/@churi.vibhav/creating-and-using-a-local-nuget-package-repository-9f19475d6af8
+"C:\Program Files\NuGet\nuget.exe" add C:\WorkSpace\src\coginov-exchange-library\Coginov.Exchange.Library\bin\Debug\Coginov.Exchange.Library.1.0.0.nupkg -source d:\source\nuget_repo
 
 
 

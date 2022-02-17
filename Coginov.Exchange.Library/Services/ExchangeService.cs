@@ -1,5 +1,5 @@
-﻿using Coginov.Common.Library.Enums;
-using Coginov.Common.Library.Helpers;
+﻿using Coginov.Exchange.Library.Enums;
+using Coginov.Exchange.Library.Helpers;
 using Coginov.Exchange.Library.Models;
 using MailBee;
 using MailBee.EwsMail;

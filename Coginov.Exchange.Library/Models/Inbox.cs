@@ -1,4 +1,4 @@
-﻿using Coginov.Common.Library.Enums;
+﻿using Coginov.Exchange.Library.Enums;
 
 namespace Coginov.Exchange.Library.Models
 {
