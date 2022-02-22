@@ -1,0 +1,40 @@
+parameters:
+  - name: nugetFeed
+    displayName: Deploy to Feed
+    type: string
+    default: No
+    values:
+    - No
+    - Development Feed
+    - Production Feed
+  - name: packageVersion
+    displayName: NuGet Package Version
+    type: string
+trigger: none
+variables:
+- name: BuildParameters.solution
+  value: '**\*.sln'
+name: $(date:yyyyMMdd)$(rev:.r)
+pool:
+  vmImage: 'windows-2022'
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: refs/heads/feature/GOV-144_Azure_Pipeline
+jobs:
+- job: Job_1
+  displayName: Agent job 1
+  pool:
+    name: Azure Pipelines
+  steps:
+  - checkout: self
+    clean: true
+  - script: echo 'Hello! $(PACKAGEVERSION)'
+  - script: echo '1 ${{ parameters.nugetFeed }}'
+    condition: eq('${{ parameters.nugetFeed }}', 'No')
+  - script: echo '2 ${{ parameters.nugetFeed }}'
+    condition: eq('${{ parameters.nugetFeed }}', 'Development Feed')
+  - script: echo '3 ${{ parameters.nugetFeed }}'
+    condition: eq('${{ parameters.nugetFeed }}', 'Production Feed')
+...
