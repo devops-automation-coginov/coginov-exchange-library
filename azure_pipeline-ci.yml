@@ -30,11 +30,47 @@ jobs:
   steps:
   - checkout: self
     clean: true
-  - script: echo 'Hello! $(PACKAGEVERSION)'
-  - script: echo '1 ${{ parameters.nugetFeed }}'
-    condition: eq('${{ parameters.nugetFeed }}', 'No')
-  - script: echo '2 ${{ parameters.nugetFeed }}'
+  - task: NuGetToolInstaller@0
+    displayName: Use NuGet 6.1.0
+    inputs:
+      versionSpec: 6.1.0
+  - task: NuGetCommand@2
+    displayName: NuGet restore
+    inputs:
+      solution: $(BuildParameters.solution)
+  - task: VSBuild@1
+    displayName: Build solution **\*.sln
+    inputs:
+      solution: $(BuildParameters.solution)
+      platform: $(BuildPlatform)
+      configuration: $(BuildConfiguration)
+  - task: VSTest@2
+    displayName: VsTest - testAssemblies
+    inputs:
+      testAssemblyVer2: >-
+        **\$(BuildConfiguration)\*test*.dll
+
+        !**\obj\**
+      platform: $(BuildPlatform)
+      configuration: $(BuildConfiguration)
+  - task: NuGetCommand@2
+    displayName: NuGet pack
+    inputs:
+      command: pack
+      versioningScheme: byEnvVar
+      versionEnvVar: PackageVersion
+      includeSymbols: true
+    condition: ne('${{ parameters.nugetFeed }}', 'No')
+  - task: NuGetCommand@2
+    displayName: NuGet push
+    inputs:
+      command: push
+      feedPublish: b8f3ec8a-abb9-4751-aff2-562771e75cc5
     condition: eq('${{ parameters.nugetFeed }}', 'Development Feed')
-  - script: echo '3 ${{ parameters.nugetFeed }}'
+  - task: NuGetCommand@2
+    displayName: NuGet push
+    inputs:
+      command: push
+      feedPublish: 0c681b63-1238-46ef-aee8-c1bf40f1785f
     condition: eq('${{ parameters.nugetFeed }}', 'Production Feed')
 ...
