@@ -1,4 +1,19 @@
 parameters:
+  - name: buildConfiguration
+    displayName: Build Configuration
+    type: string
+    default: debug
+    values:
+    - debug
+    - release
+  - name: buildPlatform
+    displayName: Build Platform
+    type: string
+    default: any cpu
+    values: 
+    - any cpu
+    - x86
+    - x64
   - name: nugetFeed
     displayName: Deploy to Feed
     type: string
@@ -10,13 +25,17 @@ parameters:
   - name: packageVersion
     displayName: NuGet Package Version
     type: string
-    default: ''
+    default: '0.0.0'
 trigger: none
 variables:
   - name: BuildParameters.solution
     value: '**\*.sln'
   - name: PackageVersion
     value: '${{ parameters.packageVersion }}'
+  - name: BuildConfiguration
+    value: '${{ parameters.buildConfiguration }}'
+  - name: BuildPlatform
+    value: '${{ parameters.buildPlatform }}'
 name: $(date:yyyyMMdd)$(rev:.r)
 resources:
   repositories:
