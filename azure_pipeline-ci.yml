@@ -10,10 +10,13 @@ parameters:
   - name: packageVersion
     displayName: NuGet Package Version
     type: string
+    default: ''
 trigger: none
 variables:
-- name: BuildParameters.solution
-  value: '**\*.sln'
+  - name: BuildParameters.solution
+    value: '**\*.sln'
+  - name: PackageVersion
+    value: '${{ parameters.packageVersion }}'
 name: $(date:yyyyMMdd)$(rev:.r)
 pool:
   vmImage: 'windows-2022'
