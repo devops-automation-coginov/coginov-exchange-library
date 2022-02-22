@@ -1,3 +1,5 @@
+# Don't modify this file directly in Azure DevOps due to Gitlab mirroring to be one way.
+# Push the changes on gitlab, it will be reflected in Azure DevOps after.
 parameters:
   - name: buildConfiguration
     displayName: Build Configuration
