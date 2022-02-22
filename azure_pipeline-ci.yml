@@ -18,8 +18,6 @@ variables:
   - name: PackageVersion
     value: '${{ parameters.packageVersion }}'
 name: $(date:yyyyMMdd)$(rev:.r)
-pool:
-  vmImage: 'windows-2022'
 resources:
   repositories:
   - repository: self
@@ -30,6 +28,7 @@ jobs:
   displayName: Agent job 1
   pool:
     name: Azure Pipelines
+    vmImage: windows-2022
   steps:
   - checkout: self
     clean: true
