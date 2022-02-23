@@ -88,12 +88,12 @@ jobs:
     displayName: NuGet push
     inputs:
       command: push
-      feedPublish: b8f3ec8a-abb9-4751-aff2-562771e75cc5
+      feedPublish: 4d8c1dd4-9fe1-4d9a-b216-0278c72f9856
     condition: eq('${{ parameters.nugetFeed }}', 'Development Feed')
   - task: NuGetCommand@2
     displayName: NuGet push
     inputs:
       command: push
-      feedPublish: 0c681b63-1238-46ef-aee8-c1bf40f1785f
+      feedPublish: 03f872cd-d7c9-4c7c-a4db-45bf005bf779
     condition: eq('${{ parameters.nugetFeed }}', 'Production Feed')
 ...
