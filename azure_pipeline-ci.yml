@@ -43,7 +43,7 @@ resources:
   repositories:
   - repository: self
     type: git
-    ref: refs/heads/feature/GOV-144_Azure_Pipeline
+    ref: refs/heads/develop
 jobs:
 - job: Job_1
   displayName: Agent job 1
