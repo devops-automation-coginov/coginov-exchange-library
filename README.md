@@ -9,7 +9,7 @@ https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/package/nuget-auth
 "C:\Program Files\NuGet\nuget.exe" delete Coginov.Exchange.Library 1.0.0 -source C:\WorkSpace\src\nuget_repo
 
 ## Push package to NuGet Feed
-"C:\Program Files\NuGet\nuget.exe" push -Source "https://pkgs.dev.azure.com/CoginovRD/_packaging/CoginovRD/nuget/v3/index.json" -ApiKey az "C:\WorkSpace\src\coginov-exchange-library\Coginov.Exchange.Library\bin\Debug\Coginov.Exchange.Library.1.0.0.nupkg"
+"C:\Program Files\NuGet\nuget.exe" push -Source "https://pkgs.dev.azure.com/CoginovRD/_packaging/CoginovRD/nuget/v3/index.json" -ApiKey az "C:\WorkSpace\src\coginov-exchange-library\Coginov.Exchange.Library\bin\Debug\Coginov.Exchange.Library.1.1.4.nupkg"
 
 ## Getting started
 
