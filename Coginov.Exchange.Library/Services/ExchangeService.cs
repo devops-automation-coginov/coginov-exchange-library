@@ -102,7 +102,7 @@ namespace Coginov.Exchange.Library.Services
                 var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
                 var errorMsg = $"{Resource.ErrorReadingEmail}: {folder}. {ex.Message}{innerException}";
                 errors.Add(errorMsg);
-                logger.LogError(errorMsg, ex);
+                logger.LogError(errorMsg);
                 return null;
             }
 
@@ -141,7 +141,9 @@ namespace Coginov.Exchange.Library.Services
             }
             catch (Exception ex)
             {
-                logger.LogError($"{Resource.ErrorMovingEmail}: {srcFolder} -> {destFolder}. {ex.Message}");
+                var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
+                var errorMsg = $"{Resource.ErrorMovingEmail}: {srcFolder} -> {destFolder}. {ex.Message}{innerException}";
+                logger.LogError(errorMsg);
                 return false;
             }
         }
@@ -209,7 +211,9 @@ namespace Coginov.Exchange.Library.Services
             }
             catch (Exception ex)
             {
-                logger.LogError($"{Resource.ErrorCopyingEmail}: {srcFolder} -> {destFolder}. {ex.Message}");
+                var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
+                var errorMsg = $"{Resource.ErrorCopyingEmail}: {srcFolder} -> {destFolder}. {ex.Message}{innerException}";
+                logger.LogError(errorMsg);
                 return false;
             }
 
@@ -237,7 +241,9 @@ namespace Coginov.Exchange.Library.Services
             }
             catch (Exception ex)
             {
-                logger.LogInformation($"{Resource.ErrorUploadingEmail}: {folder}. {ex.Message}");
+                var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
+                var errorMsg = $"{Resource.ErrorUploadingEmail}: {folder}. {ex.Message}{innerException}";
+                logger.LogError(errorMsg);
                 return false;
             }
         }
@@ -292,7 +298,10 @@ namespace Coginov.Exchange.Library.Services
             catch (Exception ex)
             {
                 success = false;
-                logger.LogError($"{Resource.ErrorSendingEmail}: {email.To} | {email.Subject}. {Resource.ErrorDetails}: {ex.Message}", ex);
+
+                var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
+                var errorMsg = $"{Resource.ErrorSendingEmail}: {email.To} | {email.Subject}. {Resource.ErrorDetails} - {ex.Message}{innerException}";
+                logger.LogError(errorMsg);
             }
 
             return success;
@@ -338,7 +347,9 @@ namespace Coginov.Exchange.Library.Services
             }
             catch (Exception ex)
             {
-                logger.LogError($"{Resource.ErrorTaggingEmail}: {messageId}. {ex.Message}");
+                var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
+                var errorMsg = $"{Resource.ErrorTaggingEmail}: {messageId}. {ex.Message}{innerException}";
+                logger.LogError(errorMsg);
                 return false;
             }
         }
@@ -398,7 +409,9 @@ namespace Coginov.Exchange.Library.Services
             }
             catch (Exception ex)
             {
-                logger.LogError($"{Resource.ErrorFlaggingEmail}: {messageId}. {ex.Message}");
+                var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
+                var errorMsg = $"{Resource.ErrorFlaggingEmail}: {messageId}. {ex.Message}{innerException}";
+                logger.LogError(errorMsg);
                 return false;
             }
         }
@@ -430,7 +443,9 @@ namespace Coginov.Exchange.Library.Services
             }
             catch (Exception ex)
             {
-                logger.LogError($"{Resource.ErrorSendingTemplate}: {ex.Message}", ex);
+                var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
+                var errorMsg = $"{Resource.ErrorSendingTemplate}: {ex.Message}{innerException}";
+                logger.LogError(errorMsg);
                 return false;
             }
         }
@@ -468,7 +483,9 @@ namespace Coginov.Exchange.Library.Services
             }
             catch (Exception ex)
             {
-                logger.LogError($"{Resource.ErrorSendingTemplate}: {ex.Message}", ex);
+                var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
+                var errorMsg = $"{Resource.ErrorSendingTemplate}: {ex.Message}{innerException}";
+                logger.LogError(errorMsg);
                 return false;
             }
         }
@@ -497,7 +514,9 @@ namespace Coginov.Exchange.Library.Services
             }
             catch (Exception ex)
             {
-                logger.LogError($"{Resource.ErrorSendingTemplate}: {ex.Message}", ex);
+                var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
+                var errorMsg = $"{Resource.ErrorSendingTemplate}: {ex.Message}{innerException}";
+                logger.LogError(errorMsg);
                 return false;
             }
         }
@@ -538,7 +557,7 @@ namespace Coginov.Exchange.Library.Services
                 var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
                 errorMsg = $"{Resource.ErrorSavingEmailAsMsg}. {Resource.MessageId}: {email.MessageID}. {Resource.DestinationFolder}: {destinationFolder}. {Resource.MessageFileName}: {msgFileName}. {Resource.ErrorMessage}: {ex.Message}{innerException}";
                 errors.Add(errorMsg);
-                logger.LogError(errorMsg, ex);
+                logger.LogError(errorMsg);
 
                 // If an exception happens while trying to save the Email as Msg
                 // we don't try to save attachments and return false
@@ -566,7 +585,7 @@ namespace Coginov.Exchange.Library.Services
                         var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
                         errorMsg = $"{Resource.ErrorSavingEmailAttachmentToFileSystem}. {Resource.MessageId}: {email.MessageID}. {Resource.DestinationFolder}: {destinationFolder}. {Resource.AttachmentFileName}: {attachment.Filename}. {Resource.ErrorMessage}{innerException}: {ex.Message}";
                         errors.Add(errorMsg);
-                        logger.LogError(errorMsg, ex);
+                        logger.LogError(errorMsg);
                     }
                 }
             }
@@ -602,12 +621,12 @@ namespace Coginov.Exchange.Library.Services
         // https://newbedev.com/exchange-web-services-ews-finditems-within-all-folders
         // https://docs.microsoft.com/en-us/exchange/client-developer/exchange-web-services/how-to-perform-grouped-searches-by-using-ews-in-exchange
         public async Task<EwsItemList> GetEmailsFromFolderAfterDate(EwsFolder folder,
-                                                   DateTime afterDate,
-                                                   int startIndex = 0,
-                                                   int emailCount = 10,
-                                                   List<string> errors = null,
-                                                   bool unreadOnly = false,
-                                                   EwsItemParts itemParts = EwsItemParts.MailMessageFull)
+                                                                    DateTime afterDate,
+                                                                    int startIndex = 0,
+                                                                    int emailCount = 10,
+                                                                    List<string> errors = null,
+                                                                    bool unreadOnly = false,
+                                                                    EwsItemParts itemParts = EwsItemParts.MailMessageFull)
         {
             if (errors == null)
             {
@@ -638,8 +657,10 @@ namespace Coginov.Exchange.Library.Services
                 var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
                 var errorMsg = $"{Resource.ErrorReadingEmail}: {folder.FullName}. {ex.Message}{innerException}";
                 errors.Add(errorMsg);
-                logger.LogError(errorMsg, ex);
-                return null;
+                logger.LogError(errorMsg);
+
+                // Throw same exception so the client implements other recovery mechanisms
+                throw;
             }
         }
 
@@ -671,7 +692,9 @@ namespace Coginov.Exchange.Library.Services
                 {
                     // Fallback for older versions of Exchange.
                     // Continue to next iteration for lower version
-                    logger.LogError($"{Resource.ErrorInitEwsClientForVersion}: {version}. {ex.Message}");
+                    var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
+                    var errorMsg = $"{Resource.ErrorInitEwsClientForVersion}: {version}. {ex.Message}{innerException}";
+                    logger.LogError(errorMsg);
                     isEwsClientInitialized = false;
                 }
             }
@@ -710,7 +733,10 @@ namespace Coginov.Exchange.Library.Services
             catch (Exception ex)
             {
                 isServiceConnectedToInbox = false;
-                logger.LogError($"{Resource.ErrorConnectingToExchange} - {Resource.InMailInbox} - {inbox.ServerUrl}: {ex.Message}", ex);
+
+                var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
+                var errorMsg = $"{Resource.ErrorConnectingToExchange} - {Resource.InMailInbox} - {inbox.ServerUrl}: {ex.Message}{innerException}";
+                logger.LogError(errorMsg);
             }
 
             return isServiceConnectedToInbox;
@@ -783,7 +809,10 @@ namespace Coginov.Exchange.Library.Services
             catch (Exception ex)
             {
                 success = false;
-                logger.LogError($"{Resource.ErrorConnectingToExchange}: {ex.Message}");
+
+                var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
+                var errorMsg = $"{Resource.ErrorConnectingToExchange}: {ex.Message}{innerException}";
+                logger.LogError(errorMsg);
             }
 
             return success;
@@ -846,7 +875,10 @@ namespace Coginov.Exchange.Library.Services
             catch (Exception ex)
             {
                 success = false;
-                logger.LogError($"{Resource.ErrorConnectingToExchange}: {ex.Message}");
+
+                var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
+                var errorMsg = $"{Resource.ErrorConnectingToExchange}: {ex.Message}{innerException}";
+                logger.LogError(errorMsg);
             }
 
             return success;
@@ -907,7 +939,10 @@ namespace Coginov.Exchange.Library.Services
             catch (Exception ex)
             {
                 success = false;
-                logger.LogError($"{Resource.ErrorConnectingToExchange}: {ex.Message}");
+
+                var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
+                var errorMsg = $"{Resource.ErrorConnectingToExchange}: {ex.Message}{innerException}";
+                logger.LogError(errorMsg);
             }
 
             return success;
