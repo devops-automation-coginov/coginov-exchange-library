@@ -683,7 +683,7 @@ namespace Coginov.Exchange.Library.Services
             {
                 try
                 {
-                    ewsClient.InitEwsClient((ExchangeVersion)version);
+                    ewsClient.InitEwsClient((ExchangeVersion)version, TimeZoneInfo.Utc);
                     exchangeVersion = (ExchangeVersion)version;
                     isEwsClientInitialized = true;
                     break;
