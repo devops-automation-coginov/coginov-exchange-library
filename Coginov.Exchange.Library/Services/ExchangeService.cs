@@ -620,6 +620,8 @@ namespace Coginov.Exchange.Library.Services
         // References:
         // https://newbedev.com/exchange-web-services-ews-finditems-within-all-folders
         // https://docs.microsoft.com/en-us/exchange/client-developer/exchange-web-services/how-to-perform-grouped-searches-by-using-ews-in-exchange
+        // We recommend adding a millisecond to the afterDate parameter due to current issues in EWS Api SearchFilter.IsGreaterThan. See link below
+        // https://github.com/OfficeDev/ews-managed-api/issues/139
         public async Task<EwsItemList> GetEmailsFromFolderAfterDate(EwsFolder folder,
                                                                     DateTime afterDate,
                                                                     int startIndex = 0,
