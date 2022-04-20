@@ -684,6 +684,7 @@ namespace Coginov.Exchange.Library.Services
                 try
                 {
                     ewsClient.InitEwsClient((ExchangeVersion)version, TimeZoneInfo.Utc);
+                    ewsClient.Service.DateTimePrecision = DateTimePrecision.Milliseconds;
                     exchangeVersion = (ExchangeVersion)version;
                     isEwsClientInitialized = true;
                     break;
