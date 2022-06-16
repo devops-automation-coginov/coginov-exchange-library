@@ -598,6 +598,10 @@ namespace Coginov.Exchange.Library.Services
             return await ewsClient.DownloadFoldersAsync(includeSubfolders);
         }
 
+        public async Task<EwsFolder> GetFolder(string uniqueId)
+        {
+            return await ewsClient.DownloadFolderByIdAsync(new FolderId(uniqueId));
+        }
 
         public async Task<EwsFolder> GetAllItemsFolder()
         {
