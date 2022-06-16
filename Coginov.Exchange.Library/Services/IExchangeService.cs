@@ -40,6 +40,8 @@ namespace Coginov.Exchange.Library.Services
 
         Task<List<EwsFolder>> GetFolders(bool includeSubfolders = true);
 
+        Task<EwsFolder> GetFolder(string uniqueId);
+
         Task<EwsFolder> GetAllItemsFolder();
 
         Task<EwsItemList> GetEmailsFromFolderAfterDate(EwsFolder folder, DateTime afterDate, int startIndex = 0, int emailCount = 10, List<string> errors = null, bool unreadOnly = false, EwsItemParts itemParts = EwsItemParts.MailMessageFull);
