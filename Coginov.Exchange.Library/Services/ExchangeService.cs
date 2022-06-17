@@ -626,7 +626,7 @@ namespace Coginov.Exchange.Library.Services
         // https://docs.microsoft.com/en-us/exchange/client-developer/exchange-web-services/how-to-perform-grouped-searches-by-using-ews-in-exchange
         // We recommend adding a millisecond to the afterDate parameter due to current issues in EWS Api SearchFilter.IsGreaterThan. See link below
         // https://github.com/OfficeDev/ews-managed-api/issues/139
-        public async Task<EwsItemList> GetEmailsFromFolderAfterDate(EwsFolder folder,
+        public async Task<List<EwsItem>> GetEmailsFromFolderAfterDate(EwsFolder folder,
                                                                     DateTime afterDate,
                                                                     int startIndex = 0,
                                                                     int emailCount = 10,
@@ -654,9 +654,30 @@ namespace Coginov.Exchange.Library.Services
                 filter.Add(new SearchFilter.IsGreaterThan(ItemSchema.DateTimeCreated, afterDate));
                 filter.Add(new SearchFilter.IsEqualTo(ItemSchema.ItemClass, "IPM.Note"));
                 var searchItemList = await ewsClient.SearchAsync(folder.Id, filter, view);
-                var itemList = await ewsClient.DownloadItemsAsync(searchItemList.ToList(), itemParts);
 
-                return itemList;
+                try
+                {
+                    var ewsItemList = await ewsClient.DownloadItemsAsync(searchItemList.ToList(), itemParts);
+                    return ewsItemList;
+                }
+                catch(System.Xml.XmlException)
+                {
+                    // Server may be busy and return a malformed xml
+                    // Fall back to download all items one by one
+                    var itemList = new List<EwsItem>();
+                    foreach(var item in searchItemList)
+                    {
+                        try
+                        {
+                            itemList.Add(await ewsClient.DownloadItemAsync(item.Id, itemParts));
+                        }
+                        catch (MailBeeInvalidArgumentException)
+                        {
+                            continue;
+                        }
+                    }
+                    return itemList;
+                }
             }
             catch (Exception ex)
             {
