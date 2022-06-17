@@ -44,6 +44,6 @@ namespace Coginov.Exchange.Library.Services
 
         Task<EwsFolder> GetAllItemsFolder();
 
-        Task<EwsItemList> GetEmailsFromFolderAfterDate(EwsFolder folder, DateTime afterDate, int startIndex = 0, int emailCount = 10, List<string> errors = null, bool unreadOnly = false, EwsItemParts itemParts = EwsItemParts.MailMessageFull);
+        Task<List<EwsItem>> GetEmailsFromFolderAfterDate(EwsFolder folder, DateTime afterDate, int startIndex = 0, int emailCount = 10, List<string> errors = null, bool unreadOnly = false, EwsItemParts itemParts = EwsItemParts.MailMessageFull);
     }
 }
