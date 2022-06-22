@@ -295,6 +295,15 @@ namespace Coginov.Exchange.Library {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Exchange Server is busy. Retrying in {0} seconds.
+        /// </summary>
+        internal static string ExchangeServerBusy {
+            get {
+                return ResourceManager.GetString("ExchangeServerBusy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Message Id.
         /// </summary>
         internal static string Id {

@@ -552,6 +552,15 @@ namespace Coginov.Exchange.Library.Services
                 var msgReader = new MsgConvert();
                 msgReader.MailMessageToMsg(email, Path.Combine(destinationFolder, msgFileName));
             }
+            catch (NotSupportedException ex)
+            {
+                //Support for UTF-7 is disabled. Default to saving as .txt file
+                using StreamWriter textFile = new(Path.Combine(destinationFolder, msgFileName));
+                await textFile.WriteLineAsync($"From: {email.From}");
+                await textFile.WriteLineAsync($"To: {email.To}");
+                await textFile.WriteLineAsync($"Subject: {email.Subject}");
+                await textFile.WriteLineAsync($"Body: {email.BodyPlainText ?? email.BodyHtmlText}");
+            }
             catch (Exception ex)
             {
                 var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
@@ -595,12 +604,40 @@ namespace Coginov.Exchange.Library.Services
 
         public async Task<List<EwsFolder>> GetFolders(bool includeSubfolders = true)
         {
-            return await ewsClient.DownloadFoldersAsync(includeSubfolders);
+            try
+            {
+                return await ewsClient.DownloadFoldersAsync(includeSubfolders);
+            }
+            catch (MailBeeEwsException ex)
+            {
+                var errorMsg = $"{Resource.ErrorReadingEmail}: {ex.Message}";
+                logger.LogError(errorMsg);
+                if (ex.InnerException is ServerBusyException busyException)
+                {
+                    logger.LogError(string.Format(Resource.ExchangeServerBusy, (int)busyException.BackOffMilliseconds / 1000));
+                    Thread.Sleep(busyException.BackOffMilliseconds);
+                }
+                throw;
+            }
         }
 
         public async Task<EwsFolder> GetFolder(string uniqueId)
         {
-            return await ewsClient.DownloadFolderByIdAsync(new FolderId(uniqueId));
+            try
+            {
+                return await ewsClient.DownloadFolderByIdAsync(new FolderId(uniqueId));
+            }
+            catch (MailBeeEwsException ex)
+            {
+                var errorMsg = $"{Resource.ErrorReadingEmail}: {ex.Message}";
+                logger.LogError(errorMsg);
+                if (ex.InnerException is ServerBusyException busyException)
+                {
+                    logger.LogError(string.Format(Resource.ExchangeServerBusy, (int)busyException.BackOffMilliseconds / 1000));
+                    Thread.Sleep(busyException.BackOffMilliseconds);
+                }
+                throw;
+            }
         }
 
         public async Task<EwsFolder> GetAllItemsFolder()
@@ -678,6 +715,19 @@ namespace Coginov.Exchange.Library.Services
                     }
                     return itemList;
                 }
+            }
+            catch (MailBeeEwsException ex)
+            {
+                var errorMsg = $"{Resource.ErrorReadingEmail}: {folder.FullName}. {ex.Message}";
+                errors.Add(errorMsg);
+                logger.LogError(errorMsg);
+                if (ex.InnerException is ServerBusyException busyException)
+                {
+                    logger.LogError(string.Format(Resource.ExchangeServerBusy, (int)busyException.BackOffMilliseconds/1000));
+                    Thread.Sleep(busyException.BackOffMilliseconds);
+                }
+
+                throw;
             }
             catch (Exception ex)
             {
