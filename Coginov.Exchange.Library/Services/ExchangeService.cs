@@ -554,7 +554,7 @@ namespace Coginov.Exchange.Library.Services
             }
             catch (NotSupportedException ex)
             {
-                //Support for UTF-7 is disabled. Default to saving as .txt file
+                // Support for UTF-7 disabled. Default to saving as .txt file
                 using StreamWriter textFile = new(Path.Combine(destinationFolder, msgFileName));
                 await textFile.WriteLineAsync($"From: {email.From}");
                 await textFile.WriteLineAsync($"To: {email.To}");
@@ -614,9 +614,11 @@ namespace Coginov.Exchange.Library.Services
                 logger.LogError(errorMsg);
                 if (ex.InnerException is ServerBusyException busyException)
                 {
+                    // We wait BackOffMilliseconds and throw exception for the client to retry and continue
                     logger.LogError(string.Format(Resource.ExchangeServerBusy, (int)busyException.BackOffMilliseconds / 1000));
                     Thread.Sleep(busyException.BackOffMilliseconds);
                 }
+
                 throw;
             }
         }
@@ -633,9 +635,11 @@ namespace Coginov.Exchange.Library.Services
                 logger.LogError(errorMsg);
                 if (ex.InnerException is ServerBusyException busyException)
                 {
+                    // We wait BackOffMilliseconds and throw exception for the client to retry and continue
                     logger.LogError(string.Format(Resource.ExchangeServerBusy, (int)busyException.BackOffMilliseconds / 1000));
                     Thread.Sleep(busyException.BackOffMilliseconds);
                 }
+
                 throw;
             }
         }
@@ -664,12 +668,12 @@ namespace Coginov.Exchange.Library.Services
         // We recommend adding a millisecond to the afterDate parameter due to current issues in EWS Api SearchFilter.IsGreaterThan. See link below
         // https://github.com/OfficeDev/ews-managed-api/issues/139
         public async Task<List<EwsItem>> GetEmailsFromFolderAfterDate(EwsFolder folder,
-                                                                    DateTime afterDate,
-                                                                    int startIndex = 0,
-                                                                    int emailCount = 10,
-                                                                    List<string> errors = null,
-                                                                    bool unreadOnly = false,
-                                                                    EwsItemParts itemParts = EwsItemParts.MailMessageFull)
+                                                                     DateTime afterDate,
+                                                                     int startIndex = 0,
+                                                                     int emailCount = 10,
+                                                                     List<string> errors = null,
+                                                                     bool unreadOnly = false,
+                                                                     EwsItemParts itemParts = EwsItemParts.MailMessageFull)
         {
             if (errors == null)
             {
@@ -713,6 +717,7 @@ namespace Coginov.Exchange.Library.Services
                             continue;
                         }
                     }
+
                     return itemList;
                 }
             }
@@ -723,6 +728,7 @@ namespace Coginov.Exchange.Library.Services
                 logger.LogError(errorMsg);
                 if (ex.InnerException is ServerBusyException busyException)
                 {
+                    // We wait BackOffMilliseconds and throw exception for the client to retry and continue
                     logger.LogError(string.Format(Resource.ExchangeServerBusy, (int)busyException.BackOffMilliseconds/1000));
                     Thread.Sleep(busyException.BackOffMilliseconds);
                 }
