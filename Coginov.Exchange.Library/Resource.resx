@@ -195,6 +195,9 @@
   <data name="EwsClientNotInitialized" xml:space="preserve">
     <value>Ews client not initialized</value>
   </data>
+  <data name="ExchangeServerBusy" xml:space="preserve">
+    <value>Exchange Server is busy. Retrying in {0} seconds</value>
+  </data>
   <data name="Id" xml:space="preserve">
     <value>Message Id</value>
   </data>
