@@ -3,13 +3,13 @@ https://medium.com/@churi.vibhav/creating-and-using-a-local-nuget-package-reposi
 https://docs.microsoft.com/en-us/azure/devops/pipelines/tasks/package/nuget-authenticate?view=azure-devops
 
 ## Add package to local file repository
-"C:\Program Files\NuGet\nuget.exe" add C:\WorkSpace\src\coginov-exchange-library\Coginov.Exchange.Library\bin\Release\Coginov.Exchange.Library.1.1.8.nupkg -source d:\source\nuget_repo
+"C:\Program Files\NuGet\nuget.exe" add C:\WorkSpace\src\coginov-exchange-library\Coginov.Exchange.Library\bin\Release\Coginov.Exchange.Library.1.1.9.nupkg -source d:\source\nuget_repo
 
 ## Delete package from local file repository
-"C:\Program Files\NuGet\nuget.exe" delete Coginov.Exchange.Library 1.1.8 -source C:\WorkSpace\src\nuget_repo
+"C:\Program Files\NuGet\nuget.exe" delete Coginov.Exchange.Library 1.1.9 -source C:\WorkSpace\src\nuget_repo
 
 ## Push package to NuGet Feed
-"C:\Program Files\NuGet\nuget.exe" push -Source "https://pkgs.dev.azure.com/CoginovRD/_packaging/CoginovRD/nuget/v3/index.json" -ApiKey az "C:\WorkSpace\src\coginov-exchange-library\Coginov.Exchange.Library\bin\Release\Coginov.Exchange.Library.1.1.8.nupkg"
+"C:\Program Files\NuGet\nuget.exe" push -Source "https://pkgs.dev.azure.com/CoginovRD/_packaging/CoginovRD/nuget/v3/index.json" -ApiKey az "C:\WorkSpace\src\coginov-exchange-library\Coginov.Exchange.Library\bin\Release\Coginov.Exchange.Library.1.1.9.nupkg"
 
 ## Getting started
 
