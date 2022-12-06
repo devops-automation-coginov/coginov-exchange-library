@@ -42,18 +42,7 @@ jobs:
     inputs:
       filePath: Coginov.Exchange.Library.Azure.Pipelines/signcoginovexchangelibrary.ps1
       arguments: -ArtefactFolder "$(System.DefaultWorkingDirectory)" -base64 "$(CoginovCodeSigining)"
-      script: >-
-        cd -Path "$(System.DefaultWorkingDirectory)\Coginov.Exchange.Library\bin\Debug\net6.0\" -PassThru
-
-        $fileExec = "$(System.DefaultWorkingDirectory)\Coginov.Exchange.Library\bin\Debug\net6.0\Coginov.Exchange.Library.dll";
-
-        $base64 = "$(CoginovCodeSigining)";
-
-        $buffer = [System.Convert]::FromBase64String($base64);
-
-        $certificate = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new($buffer);
-
-        Set-AuthenticodeSignature -FilePath $fileExec -Certificate $certificate;
+      script: ''
   - task: NuGetCommand@2
     displayName: NuGet pack for Coginov Exchange Library
     inputs:
