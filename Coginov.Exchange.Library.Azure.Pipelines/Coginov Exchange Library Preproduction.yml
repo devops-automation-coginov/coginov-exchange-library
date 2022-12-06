@@ -27,19 +27,7 @@ jobs:
     displayName: Get Version From File in Gitlab
     inputs:
       filePath: Coginov.Exchange.Library.Azure.Pipelines/getversionfromfilepreprod.ps1
-      script: >-
-        $version = Get-Content version.txt
-
-        ##$my = $(Get-Date -Format "MM-yyyy")
-
-        ##$Env:BUILD_BUILDNUMBER = "$version"
-
-        Write-Host "##vso[task.setvariable variable=buildNumber]$version"
-
-        #New-Item -Path Env:\buildNumber -Value "$version"
-
-        $Env:buildNumber = "$version"
-         Write-Host "Hello $Env:buildNumber"
+      script: ''
   - task: VSBuild@1
     displayName: Build Coginov Exchange Library
     inputs:
