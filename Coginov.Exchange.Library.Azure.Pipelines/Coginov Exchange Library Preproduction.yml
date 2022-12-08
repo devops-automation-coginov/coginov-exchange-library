@@ -1,0 +1,50 @@
+# Variable 'buildNumber' was defined in the Variables tab
+trigger:
+  branches:
+    include:
+    - refs/heads/develop
+resources:
+  repositories:
+  - repository: self
+    type: git
+    ref: refs/heads/develop
+jobs:
+- job: Job_1
+  displayName: Agent job 1
+  pool:
+    vmImage: windows-latest
+  steps:
+  - checkout: self
+    clean: true
+    fetchTags: false
+  - task: NuGetToolInstaller@1
+    displayName: Install Version NuGet 6.1.0
+    inputs:
+      versionSpec: 6.1.0
+  - task: NuGetCommand@2
+    displayName: NuGet restore
+  - task: PowerShell@2
+    displayName: Get Version From File in Gitlab
+    inputs:
+      filePath: Coginov.Exchange.Library.Azure.Pipelines/getversionfromfilepreprod.ps1
+      script: ''
+  - task: VSBuild@1
+    displayName: Build Coginov Exchange Library
+    inputs:
+      msbuildArgs: /p:Version=$(buildNumber)
+  - task: NuGetCommand@2
+    displayName: NuGet pack for Coginov Exchange Library
+    inputs:
+      command: pack
+      versioningScheme: byEnvVar
+      versionEnvVar: buildNumber
+      packTimezone: local
+  - task: PublishBuildArtifacts@1
+    displayName: Publish Nuget  Package of Coginov Exchange Library in Local Repository
+  - task: NuGetCommand@2
+    displayName: NuGet push
+    inputs:
+      command: push
+      searchPatternPush: $(Build.ArtifactStagingDirectory)/*.nupkg
+      feedPublish: 4d8c1dd4-9fe1-4d9a-b216-0278c72f9856
+...
