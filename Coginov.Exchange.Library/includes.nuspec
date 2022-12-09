@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Coginov.Exchange.Library</id>
+    <version>1.1.9</version>
+    <authors>Coginov.Exchange.Library</authors>
+    <description>Coginov library used to interact with Exchange Server via EWS API / MailBee Library</description>
+    <dependencies>
+      <group targetFramework="net6.0">
+        <dependency id="MailBee.NET" version="12.2.0" exclude="Build,Analyzers" />
+        <dependency id="MailBee.NET.EWS" version="12.2.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.EntityFrameworkCore" version="6.0.1" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.EntityFrameworkCore.SqlServer" version="6.0.1" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Configuration" version="6.0.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Configuration.Json" version="6.0.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Identity.Client" version="4.40.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

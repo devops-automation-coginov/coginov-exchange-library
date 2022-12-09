@@ -18,11 +18,13 @@ jobs:
     clean: true
     fetchTags: false
   - task: NuGetToolInstaller@1
-    displayName: Install Version NuGet 6.1.0
+    displayName: Install Version NuGet 6.1
     inputs:
-      versionSpec: 6.1.0
+      versionSpec: 6.0
   - task: NuGetCommand@2
     displayName: NuGet restore
+    inputs:
+      solution: '**/*.csproj'
   - task: PowerShell@2
     displayName: Get Version From File in Gitlab
     inputs:
@@ -31,14 +33,18 @@ jobs:
   - task: VSBuild@1
     displayName: Build Coginov Exchange Library
     inputs:
-      msbuildArgs: /p:Version=$(buildNumber)
+      solution: '**\*.csproj'
+      msbuildArgs: /t:pack /p:Version=$(buildNumber)
+      msbuildArchitecture: x64
   - task: NuGetCommand@2
     displayName: NuGet pack for Coginov Exchange Library
     inputs:
       command: pack
+      searchPatternPack: '**/*.csproj; **/*.nuspec'
       versioningScheme: byEnvVar
       versionEnvVar: buildNumber
       packTimezone: local
+      arguments: pack Coginov.Exchange.Library/Coginov.Exchange.Library.csproj -IncludeReferencedProjects
   - task: PublishBuildArtifacts@1
     displayName: Publish Nuget  Package of Coginov Exchange Library in Local Repository
   - task: NuGetCommand@2
