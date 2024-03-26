@@ -796,7 +796,8 @@ namespace Coginov.Exchange.Library.Services
                     switch (inbox.AuthenticationMethod)
                     {
                         case AuthenticationMethod.Basic:
-                            isServiceConnectedToInbox = await ConnectBasic(inbox, accountToImpersonate);
+                            logger.LogCritical(Resource.BasicAuthDeprecated);
+                            isServiceConnectedToInbox = false;
                             break;
                         case AuthenticationMethod.OAuthAppPermissions:
                             isServiceConnectedToInbox = await ConnectOAuthAppPermissions(inbox, accountToImpersonate);
@@ -858,50 +859,6 @@ namespace Coginov.Exchange.Library.Services
             return (await ewsClient.SearchAsync(folderId, filter)).FirstOrDefault();
         }
 
-        private async Task<bool> ConnectBasic(Inbox inbox, string accountToImpersonate)
-        {
-            // Basic Authentication = User / Password
-            // Less secure authentication mechanism, avoid it at all cost
-            bool success = false;
-            try
-            {
-                ewsClient.SetCredentials(inbox.User, inbox.Password);
-                if (!string.IsNullOrWhiteSpace(accountToImpersonate))
-                {
-                    ewsClient.Service.ImpersonatedUserId = new ImpersonatedUserId(ConnectingIdType.SmtpAddress, accountToImpersonate);
-                }
-
-                if (!string.IsNullOrWhiteSpace(inbox.ServerUrl))
-                {
-                    ewsClient.SetServerUrl(inbox.ServerUrl);
-                    success = await ewsClient.TestConnectionAsync();
-                }
-                else if (ewsClient.Autodiscover(inbox.ReplyFrom))
-                {
-                    success = await ewsClient.TestConnectionAsync();
-                }
-
-                if (success)
-                {
-                    logger.LogInformation($"{Resource.SuccessConnectingToExchange}: {inbox.ServerUrl}");
-                }
-                else
-                {
-                    logger.LogError($"{Resource.ErrorConnectingToExchange}: {inbox.ServerUrl}");
-                }
-            }
-            catch (Exception ex)
-            {
-                success = false;
-
-                var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
-                var errorMsg = $"{Resource.ErrorConnectingToExchange}: {ex.Message}{innerException}";
-                logger.LogError(errorMsg);
-            }
-
-            return success;
-        }
-
         private async Task<bool> ConnectOAuthAppPermissions(Inbox inbox, string accountToImpersonate)
         {
             // Application Permissions = Excess of priviledges
@@ -940,10 +897,6 @@ namespace Coginov.Exchange.Library.Services
                 if (!string.IsNullOrWhiteSpace(inbox.ServerUrl))
                 {
                     ewsClient.SetServerUrl(inbox.ServerUrl);
-                    success = await ewsClient.TestConnectionAsync();
-                }
-                else if (ewsClient.Autodiscover(inbox.ReplyFrom))
-                {
                     success = await ewsClient.TestConnectionAsync();
                 }
 
@@ -1004,10 +957,6 @@ namespace Coginov.Exchange.Library.Services
                 if (!string.IsNullOrWhiteSpace(inbox.ServerUrl))
                 {
                     ewsClient.SetServerUrl(inbox.ServerUrl);
-                    success = await ewsClient.TestConnectionAsync();
-                }
-                else if (ewsClient.Autodiscover(inbox.ReplyFrom))
-                {
                     success = await ewsClient.TestConnectionAsync();
                 }
 
