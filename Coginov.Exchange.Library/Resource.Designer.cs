@@ -70,6 +70,15 @@ namespace Coginov.Exchange.Library {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Basic Authentication Method is deprecated and no longer available.
+        /// </summary>
+        internal static string BasicAuthDeprecated {
+            get {
+                return ResourceManager.GetString("BasicAuthDeprecated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Client Inbox.
         /// </summary>
         internal static string ClientInbox {
