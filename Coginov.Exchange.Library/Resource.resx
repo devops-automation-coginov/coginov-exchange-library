@@ -120,6 +120,9 @@
   <data name="AttachmentFileName" xml:space="preserve">
     <value>Attachment FileName</value>
   </data>
+  <data name="BasicAuthDeprecated" xml:space="preserve">
+    <value>Basic Authentication Method is deprecated and no longer available</value>
+  </data>
   <data name="ClientInbox" xml:space="preserve">
     <value>Client Inbox</value>
   </data>
