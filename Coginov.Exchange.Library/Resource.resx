@@ -228,7 +228,13 @@
   <data name="SuccessSendingEmail" xml:space="preserve">
     <value>Email sent successfully</value>
   </data>
+  <data name="TryingToReconnectToExchangeInbox" xml:space="preserve">
+    <value>Trying to Reconnect to Exchange Inbox. Attempt #</value>
+  </data>
   <data name="UnableToConnectToExchange" xml:space="preserve">
     <value>Unable to connect to Exchange and / or process Emails</value>
+  </data>
+  <data name="UnableToContinueProcessingInbox" xml:space="preserve">
+    <value>Max number of retries reached. Unable to continue processing inbox</value>
   </data>
 </root>

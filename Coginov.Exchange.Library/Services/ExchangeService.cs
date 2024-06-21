@@ -21,10 +21,13 @@ namespace Coginov.Exchange.Library.Services
 {
     public class ExchangeService : IExchangeService
     {
+        private const int RETRY_COUNT = 3;
+        private const int MAX_RETRY_COUNT = 10;
         private readonly string mailBeeLicenseKey = "MN120-824AB5884BF84AC94ABFADC0512C-AB72";
         private readonly ILogger logger;
 
         private Inbox inbox;
+        private string accountToImpersonate;
         private Ews ewsClient;
         private ExchangeVersion exchangeVersion;
 
@@ -51,6 +54,7 @@ namespace Coginov.Exchange.Library.Services
                                                 string accountToImpersonate = null)
         {
             this.inbox = inbox;
+            this.accountToImpersonate = accountToImpersonate;
             this.tagFlagRetryDelay = tagFlagRetryDelay;
             this.tagFlagRetryCount = tagFlagRetryCount;
 
@@ -604,62 +608,146 @@ namespace Coginov.Exchange.Library.Services
 
         public async Task<List<EwsFolder>> GetFolders(bool includeSubfolders = true)
         {
-            try
+            var retryCount = RETRY_COUNT;
+            var count = 1;
+
+            while (retryCount-- > 0)
             {
-                return await ewsClient.DownloadFoldersAsync(includeSubfolders);
-            }
-            catch (MailBeeEwsException ex)
-            {
-                var errorMsg = $"{Resource.ErrorReadingEmail}: {ex.Message}";
-                logger.LogError(errorMsg);
-                if (ex.InnerException is ServerBusyException busyException)
+                try
                 {
-                    // We wait BackOffMilliseconds and throw exception for the client to retry and continue
-                    logger.LogError(string.Format(Resource.ExchangeServerBusy, (int)busyException.BackOffMilliseconds / 1000));
-                    Thread.Sleep(busyException.BackOffMilliseconds);
+                    return await ewsClient.DownloadFoldersAsync(includeSubfolders);
+                }
+                catch (MailBeeEwsException ex)
+                {
+                    var errorMsg = $"{Resource.ErrorReadingEmail}: {ex.Message}";
+                    logger.LogError(errorMsg);
+                    if (ex.InnerException is ServerBusyException busyException)
+                    {
+                        // We wait BackOffMilliseconds and throw exception for the client to retry and continue
+                        logger.LogError(string.Format(Resource.ExchangeServerBusy, (int)busyException.BackOffMilliseconds / 1000));
+                        Thread.Sleep(busyException.BackOffMilliseconds);
+                    }
+
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError($"{nameof(ExchangeService)}: {accountToImpersonate}. {ex.Message}. {ex.InnerException?.Message}");
+
+                    // Trying to re-initialize Inbox / re-connect to Inbox
+                    logger.LogWarning($"{nameof(ExchangeService)}. {Resource.TryingToReconnectToExchangeInbox} {count++}");
+                    if (await TryToConnectToInbox(true, accountToImpersonate) == true)
+                        // If success then increment retryCount to loop back and retry fetching emails
+                        retryCount++;
+                    else
+                        // If error then decrement retryCount until it reaches 0 or we can connect to Exchange
+                        retryCount--;
                 }
 
-                throw;
+                if (count > MAX_RETRY_COUNT)
+                {
+                    logger.LogError($"{Resource.UnableToContinueProcessingInbox}: {accountToImpersonate}");
+                    return null;
+                }
             }
+
+            return null;
         }
 
         public async Task<EwsFolder> GetFolder(string uniqueId)
         {
-            try
+            var retryCount = RETRY_COUNT;
+            var count = 1;
+
+            while (retryCount-- > 0)
             {
-                return await ewsClient.DownloadFolderByIdAsync(new FolderId(uniqueId));
-            }
-            catch (MailBeeEwsException ex)
-            {
-                var errorMsg = $"{Resource.ErrorReadingEmail}: {ex.Message}";
-                logger.LogError(errorMsg);
-                if (ex.InnerException is ServerBusyException busyException)
+                try
                 {
-                    // We wait BackOffMilliseconds and throw exception for the client to retry and continue
-                    logger.LogError(string.Format(Resource.ExchangeServerBusy, (int)busyException.BackOffMilliseconds / 1000));
-                    Thread.Sleep(busyException.BackOffMilliseconds);
+                    return await ewsClient.DownloadFolderByIdAsync(new FolderId(uniqueId));
+                }
+                catch (MailBeeEwsException ex)
+                {
+                    var errorMsg = $"{Resource.ErrorReadingEmail}: {ex.Message}";
+                    logger.LogError(errorMsg);
+                    if (ex.InnerException is ServerBusyException busyException)
+                    {
+                        // We wait BackOffMilliseconds and throw exception for the client to retry and continue
+                        logger.LogError(string.Format(Resource.ExchangeServerBusy, (int)busyException.BackOffMilliseconds / 1000));
+                        Thread.Sleep(busyException.BackOffMilliseconds);
+                    }
+
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError($"{nameof(ExchangeService)}: {accountToImpersonate}. {ex.Message}. {ex.InnerException?.Message}");
+
+                    // Trying to re-initialize Inbox / re-connect to Inbox
+                    logger.LogWarning($"{nameof(ExchangeService)}. {Resource.TryingToReconnectToExchangeInbox} {count++}");
+                    if (await TryToConnectToInbox(true, accountToImpersonate) == true)
+                        // If success then increment retryCount to loop back and retry fetching emails
+                        retryCount++;
+                    else
+                        // If error then decrement retryCount until it reaches 0 or we can connect to Exchange
+                        retryCount--;
                 }
 
-                throw;
+                if (count > MAX_RETRY_COUNT)
+                {
+                    logger.LogError($"{Resource.UnableToContinueProcessingInbox}: {accountToImpersonate}");
+                    return null;
+                }
             }
+
+            return null;
         }
 
         public async Task<EwsFolder> GetAllItemsFolder()
         {
+            var retryCount = RETRY_COUNT;
+            var count = 1;
+
             if (!IsClientInitializedAndConnectedToInbox())
             {
                 logger.LogError($"{Resource.EwsClientNotInitialized} {Resource.Or} {Resource.UnableToConnectToExchange}");
                 return null;
             }
 
-            ExtendedPropertyDefinition allFoldersType = new ExtendedPropertyDefinition(13825, MapiPropertyType.Integer);
-            SearchFilter searchFilter1 = new SearchFilter.IsEqualTo(allFoldersType, "2");
-            SearchFilter searchFilter2 = new SearchFilter.IsEqualTo(FolderSchema.DisplayName, "allitems");
-            var searchFilterCollection = new SearchFilter.SearchFilterCollection(LogicalOperator.And, searchFilter1, searchFilter2);
+            while (retryCount-- > 0)
+            {
+                try
+                {
+                    ExtendedPropertyDefinition allFoldersType = new ExtendedPropertyDefinition(13825, MapiPropertyType.Integer);
+                    SearchFilter searchFilter1 = new SearchFilter.IsEqualTo(allFoldersType, "2");
+                    SearchFilter searchFilter2 = new SearchFilter.IsEqualTo(FolderSchema.DisplayName, "allitems");
+                    var searchFilterCollection = new SearchFilter.SearchFilterCollection(LogicalOperator.And, searchFilter1, searchFilter2);
 
-            var allFolders = await ewsClient.DownloadFoldersAsync(new FolderId(WellKnownFolderName.Root), new FolderView(10), searchFilterCollection, false);
+                    var allFolders = await ewsClient.DownloadFoldersAsync(new FolderId(WellKnownFolderName.Root), new FolderView(10), searchFilterCollection, false);
 
-            return allFolders.Any() ? allFolders[0] : null;
+                    return allFolders.Any() ? allFolders[0] : null;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError($"{nameof(ExchangeService)}: {accountToImpersonate}. {ex.Message}. {ex.InnerException?.Message}");
+
+                    // Trying to re-initialize Inbox / re-connect to Inbox
+                    logger.LogWarning($"{nameof(ExchangeService)}. {Resource.TryingToReconnectToExchangeInbox} {count++}");
+                    if (await TryToConnectToInbox(true, accountToImpersonate) == true)
+                        // If success then increment retryCount to loop back and retry fetching emails
+                        retryCount++;
+                    else
+                        // If error then decrement retryCount until it reaches 0 or we can connect to Exchange
+                        retryCount--;
+                }
+
+                if (count > MAX_RETRY_COUNT)
+                {
+                    logger.LogError($"{Resource.UnableToContinueProcessingInbox}: {accountToImpersonate}");
+                    return null;
+                }
+            }
+
+            return null;
         }
 
         // References:
@@ -675,6 +763,9 @@ namespace Coginov.Exchange.Library.Services
                                                                      bool unreadOnly = false,
                                                                      EwsItemParts itemParts = EwsItemParts.MailMessageFull)
         {
+            var retryCount = RETRY_COUNT;
+            var count = 1;
+
             if (errors == null)
             {
                 errors = new List<string>();
@@ -686,65 +777,82 @@ namespace Coginov.Exchange.Library.Services
                 return null;
             }
 
-            try
+            while (retryCount-- > 0)
             {
-                var view = new ItemView(emailCount, startIndex);
-                view.OrderBy.Add(ItemSchema.DateTimeCreated, SortDirection.Ascending);
-
-                var filter = new SearchFilter.SearchFilterCollection(LogicalOperator.And);
-                filter.Add(new SearchFilter.IsGreaterThan(ItemSchema.DateTimeCreated, afterDate));
-                filter.Add(new SearchFilter.IsEqualTo(ItemSchema.ItemClass, "IPM.Note"));
-                var searchItemList = await ewsClient.SearchAsync(folder.Id, filter, view);
-
                 try
                 {
-                    var ewsItemList = await ewsClient.DownloadItemsAsync(searchItemList.ToList(), itemParts);
-                    return ewsItemList;
-                }
-                catch(System.Xml.XmlException)
-                {
-                    // Server may be busy and return a malformed xml
-                    // Fall back to download all items one by one
-                    var itemList = new List<EwsItem>();
-                    foreach(var item in searchItemList)
+                    var view = new ItemView(emailCount, startIndex);
+                    view.OrderBy.Add(ItemSchema.DateTimeCreated, SortDirection.Ascending);
+
+                    var filter = new SearchFilter.SearchFilterCollection(LogicalOperator.And);
+                    filter.Add(new SearchFilter.IsGreaterThan(ItemSchema.DateTimeCreated, afterDate));
+                    filter.Add(new SearchFilter.IsEqualTo(ItemSchema.ItemClass, "IPM.Note"));
+                    var searchItemList = await ewsClient.SearchAsync(folder.Id, filter, view);
+
+                    try
                     {
-                        try
+                        var ewsItemList = await ewsClient.DownloadItemsAsync(searchItemList.ToList(), itemParts);
+                        return ewsItemList;
+                    }
+                    catch (System.Xml.XmlException)
+                    {
+                        // Server may be busy and return a malformed xml
+                        // Fall back to download all items one by one
+                        var itemList = new List<EwsItem>();
+                        foreach (var item in searchItemList)
                         {
-                            itemList.Add(await ewsClient.DownloadItemAsync(item.Id, itemParts));
+                            try
+                            {
+                                itemList.Add(await ewsClient.DownloadItemAsync(item.Id, itemParts));
+                            }
+                            catch (MailBeeInvalidArgumentException)
+                            {
+                                continue;
+                            }
                         }
-                        catch (MailBeeInvalidArgumentException)
-                        {
-                            continue;
-                        }
+
+                        return itemList;
+                    }
+                }
+                catch (MailBeeEwsException ex)
+                {
+                    var errorMsg = $"{Resource.ErrorReadingEmail}: {folder.FullName}. {ex.Message}";
+                    errors.Add(errorMsg);
+                    logger.LogError(errorMsg);
+                    if (ex.InnerException is ServerBusyException busyException)
+                    {
+                        // We wait BackOffMilliseconds and throw exception for the client to retry and continue
+                        logger.LogError(string.Format(Resource.ExchangeServerBusy, (int)busyException.BackOffMilliseconds / 1000));
+                        Thread.Sleep(busyException.BackOffMilliseconds);
                     }
 
-                    return itemList;
+                    throw;
                 }
-            }
-            catch (MailBeeEwsException ex)
-            {
-                var errorMsg = $"{Resource.ErrorReadingEmail}: {folder.FullName}. {ex.Message}";
-                errors.Add(errorMsg);
-                logger.LogError(errorMsg);
-                if (ex.InnerException is ServerBusyException busyException)
+                catch (Exception ex)
                 {
-                    // We wait BackOffMilliseconds and throw exception for the client to retry and continue
-                    logger.LogError(string.Format(Resource.ExchangeServerBusy, (int)busyException.BackOffMilliseconds/1000));
-                    Thread.Sleep(busyException.BackOffMilliseconds);
+                    var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
+                    var errorMsg = $"{Resource.ErrorReadingEmail}: {folder.FullName}. {ex.Message}{innerException}";
+                    errors.Add(errorMsg);
+                    logger.LogError(errorMsg);
+
+                    // Trying to re-initialize Inbox / re-connect to Inbox
+                    logger.LogWarning($"{nameof(ExchangeService)}. {Resource.TryingToReconnectToExchangeInbox} {count++}");
+                    if (await TryToConnectToInbox(true, accountToImpersonate) == true)
+                        // If success then increment retryCount to loop back and retry fetching emails
+                        retryCount++;
+                    else
+                        // If error then decrement retryCount until it reaches 0 or we can connect to Exchange
+                        retryCount--;
                 }
 
-                throw;
+                if (count > MAX_RETRY_COUNT)
+                {
+                    logger.LogError($"{Resource.UnableToContinueProcessingInbox}: {accountToImpersonate}");
+                    return null;
+                }
             }
-            catch (Exception ex)
-            {
-                var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
-                var errorMsg = $"{Resource.ErrorReadingEmail}: {folder.FullName}. {ex.Message}{innerException}";
-                errors.Add(errorMsg);
-                logger.LogError(errorMsg);
 
-                // Throw same exception so the client implements other recovery mechanisms
-                throw;
-            }
+            return null;
         }
 
         #region Private Methods
@@ -866,7 +974,6 @@ namespace Coginov.Exchange.Library.Services
             // Non-Interactive scenarios, user presence not required. Used for services or deamon applications
             // https://www.enowsoftware.com/solutions-engine/accessing-exchange-online-objects-without-legacy-auth
             // https://mailbeenet.wordpress.com/2021/04/26/using-mailbee-net-ews-to-access-office-365-mailbox-in-non-interactive-case/
-            bool success = false;
             try
             {
                 // Using Microsoft.Identity.Client 4.22.0 (MSAL)
@@ -882,43 +989,17 @@ namespace Coginov.Exchange.Library.Services
                 // Make the token request
                 AuthenticationResult authResult = null;
                 authResult = await app.AcquireTokenForClient(ewsScopes).ExecuteAsync();
-                OAuthCredentials authCreds = new OAuthCredentials(authResult.AccessToken);
 
-                ewsClient.SetCredentials(authCreds);
-                if (!string.IsNullOrWhiteSpace(accountToImpersonate))
-                {
-                    ewsClient.Service.ImpersonatedUserId = new ImpersonatedUserId(ConnectingIdType.SmtpAddress, accountToImpersonate);
-                }
-                else
-                {
-                    ewsClient.Service.ImpersonatedUserId = new ImpersonatedUserId(ConnectingIdType.SmtpAddress, inbox.User);
-                }
-
-                if (!string.IsNullOrWhiteSpace(inbox.ServerUrl))
-                {
-                    ewsClient.SetServerUrl(inbox.ServerUrl);
-                    success = await ewsClient.TestConnectionAsync();
-                }
-
-                if (success)
-                {
-                    logger.LogInformation($"{Resource.SuccessConnectingToExchange}: {inbox.ServerUrl}");
-                }
-                else
-                {
-                    logger.LogError($"{Resource.ErrorConnectingToExchange}: {inbox.ServerUrl}");
-                }
+                return await ConnectAndTestExchangeConnection(authResult.AccessToken);
             }
             catch (Exception ex)
             {
-                success = false;
-
                 var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
                 var errorMsg = $"{Resource.ErrorConnectingToExchange}: {ex.Message}{innerException}";
                 logger.LogError(errorMsg);
+                
+                return false;
             }
-
-            return success;
         }
 
         private async Task<bool> ConnectOAuthDelegatedPermissions(Inbox inbox)
@@ -928,7 +1009,6 @@ namespace Coginov.Exchange.Library.Services
             // Interactive scenarios, user presence required
             // https://www.enowsoftware.com/solutions-engine/accessing-exchange-online-objects-without-legacy-auth
             // https://docs.microsoft.com/en-us/exchange/client-developer/exchange-web-services/how-to-authenticate-an-ews-application-by-using-oauth#delegated-permissions
-            bool success = false;
             try
             {
                 // Configure the MSAL client to get tokens
@@ -950,32 +1030,49 @@ namespace Coginov.Exchange.Library.Services
 
                 // Make the interactive token request
                 var authResult = await pca.AcquireTokenInteractive(ewsScopes).ExecuteAsync();
-                OAuthCredentials authCreds = new OAuthCredentials(authResult.AccessToken);
 
-                ewsClient.SetCredentials(authCreds);
-
-                if (!string.IsNullOrWhiteSpace(inbox.ServerUrl))
-                {
-                    ewsClient.SetServerUrl(inbox.ServerUrl);
-                    success = await ewsClient.TestConnectionAsync();
-                }
-
-                if (success)
-                {
-                    logger.LogInformation($"{Resource.SuccessConnectingToExchange}: {inbox.ServerUrl}");
-                }
-                else
-                {
-                    logger.LogError($"{Resource.ErrorConnectingToExchange}: {inbox.ServerUrl}");
-                }
+                return await ConnectAndTestExchangeConnection(authResult.AccessToken);
             }
             catch (Exception ex)
             {
-                success = false;
-
                 var innerException = ex.InnerException != null ? $" | {ex.InnerException.Message}" : string.Empty;
                 var errorMsg = $"{Resource.ErrorConnectingToExchange}: {ex.Message}{innerException}";
                 logger.LogError(errorMsg);
+
+                return false;
+            }
+        }
+
+        private async Task<bool> ConnectAndTestExchangeConnection(string token)
+        {
+            var success = false;
+
+            OAuthCredentials authCreds = new OAuthCredentials(token);
+
+            ewsClient.SetCredentials(authCreds);
+
+            if (!string.IsNullOrWhiteSpace(accountToImpersonate))
+            {
+                ewsClient.Service.ImpersonatedUserId = new ImpersonatedUserId(ConnectingIdType.SmtpAddress, accountToImpersonate);
+            }
+            else
+            {
+                ewsClient.Service.ImpersonatedUserId = new ImpersonatedUserId(ConnectingIdType.SmtpAddress, inbox.User);
+            }
+
+            if (!string.IsNullOrWhiteSpace(inbox.ServerUrl))
+            {
+                ewsClient.SetServerUrl(inbox.ServerUrl);
+                success = await ewsClient.TestConnectionAsync();
+            }
+
+            if (success)
+            {
+                logger.LogInformation($"{Resource.SuccessConnectingToExchange}: {inbox.ServerUrl}");
+            }
+            else
+            {
+                logger.LogError($"{Resource.ErrorConnectingToExchange}: {inbox.ServerUrl}");
             }
 
             return success;
