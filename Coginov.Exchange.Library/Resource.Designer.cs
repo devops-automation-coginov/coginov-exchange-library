@@ -394,11 +394,29 @@ namespace Coginov.Exchange.Library {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Trying to Reconnect to Exchange Inbox. Attempt #.
+        /// </summary>
+        internal static string TryingToReconnectToExchangeInbox {
+            get {
+                return ResourceManager.GetString("TryingToReconnectToExchangeInbox", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to connect to Exchange and / or process Emails.
         /// </summary>
         internal static string UnableToConnectToExchange {
             get {
                 return ResourceManager.GetString("UnableToConnectToExchange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Max number of retries reached. Unable to continue processing inbox.
+        /// </summary>
+        internal static string UnableToContinueProcessingInbox {
+            get {
+                return ResourceManager.GetString("UnableToContinueProcessingInbox", resourceCulture);
             }
         }
     }
