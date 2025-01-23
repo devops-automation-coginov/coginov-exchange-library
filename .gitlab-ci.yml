@@ -26,4 +26,8 @@ deploy_main_to_github:
     - git remote add github $GITHUB_REPO
     - git push github main:main
   only:
+<<<<<<< HEAD
     - main
+=======
+    - main
+>>>>>>> origin/develop
